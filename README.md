@@ -22,7 +22,7 @@ On macOS/Linux, activate using `source .venv/bin/activate` instead. On Debian/Ub
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y libgl1 libglib2.0-0
+sudo apt-get install -y libgl1 libglib2.0-0 libegl1 libgles2
 ```
 
 Open **http://localhost:8501**. Localhost is a browser secure-context exception, so local HTTPS is not necessary. Using a plain HTTP LAN IP from another device generally will not grant camera access; use an HTTPS deployment for that device.
@@ -46,9 +46,9 @@ The computer uses `random.choice(tuple(Move))` with equal probability and receiv
 
 The official model's `Closed_Fist`, `Open_Palm`, and `Victory` labels map to the three game moves. Other labels are not accepted. Defaults are **65% confidence**, **six consecutive matching frames**, and **at least 0.3 seconds** of stability. Settings can be changed between rounds in **Camera help & settings**.
 
-The palm center (wrist plus four knuckle bases) must fall within normalized bounds **x = 0.18–0.82, y = 0.12–0.76**. The entire hand must also remain inside the image with a small margin. The target brackets use those same bounds. This provides identical readiness criteria for a fist, palm, and victory sign. More than one detected hand blocks acceptance.
+The palm center (wrist plus four knuckle bases) must fall within normalized bounds **x = 0.18–0.82, y = 0.12–0.76**. The entire hand must also remain inside the image with a small margin. The target brackets use those same bounds. This provides identical readiness criteria for a fist, palm, and victory sign. For faster single-player inference, MediaPipe tracks only one hand. Keep any other hands outside the frame; the fast mode cannot reliably reject a second hand.
 
-Frames are mirrored in OpenCV exactly once. Green lines and cyan points show hand landmarks. Processing is capped at 640 pixels in width. Low light, motion blur, a palm turned sideways, and fingers cropped out of view reduce accuracy. Six frames do not imply a fixed frame rate; both a frame count and a time requirement must be met.
+Frames are mirrored in OpenCV exactly once. Green lines and cyan points show hand landmarks. The browser requests 384×288 video at 15 FPS (up to 20), and MediaPipe inference is capped at 384 pixels wide. The processed video preview still travels to the browser via WebRTC; network delay may remain. Low light, motion blur, a palm turned sideways, and fingers cropped out of view reduce accuracy. Six frames do not imply a fixed frame rate; both a frame count and a time requirement must be met.
 
 ## Deployment on Streamlit Community Cloud
 
@@ -75,7 +75,7 @@ credential = "YOUR_TURN_CREDENTIAL"
 
 TURN credentials are sent to the browser as required for ICE negotiation. Prefer scoped or short-lived credentials from your provider. Never publish the secrets file. For larger deployments, add a provider integration that refreshes expiring credentials. See the [streamlit-webrtc hosting guidance](https://github.com/whitphx/streamlit-webrtc#remote-hosting).
 
-Camera video travels from the browser to **your Python app server** for recognition and back as an annotated preview. TURN relays transport that traffic when configured. The application does not record, save, or upload frames to a separate AI service. The model runs on the server CPU. Inter is loaded from Google Fonts, with a system-font fallback if external fonts are blocked.
+Camera video travels from the browser to **your Python app server** for recognition and back as an annotated preview. TURN relays transport that traffic when configured. The application does not record, save, or upload frames to a separate AI service. The model runs on the server CPU. The lower-resolution single-hand fast mode cuts inference work and video bandwidth, but it cannot eliminate WebRTC round-trip latency. Inter is loaded from Google Fonts, with a system-font fallback if external fonts are blocked.
 
 ## Architecture
 
