@@ -87,7 +87,7 @@ class VisionModel:
             options = vision.GestureRecognizerOptions(
                 base_options=python.BaseOptions(model_asset_path=str(path)),
                 running_mode=vision.RunningMode.VIDEO,
-                num_hands=2,  # Detect extra hands so a round cannot silently accept one.
+                num_hands=1,  # Single-player fast mode; avoid tracking a second hand.
                 min_hand_detection_confidence=0.5,
                 min_hand_presence_confidence=0.5,
                 min_tracking_confidence=0.5,
@@ -184,7 +184,17 @@ class ArenaVideoProcessor(VideoProcessorBase):
             if bgr.shape[1] > 640:
                 bgr = cv2.resize(bgr, (640, round(bgr.shape[0] * 640 / bgr.shape[1])))
             try:
-                result = self._model.recognize(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB), time.monotonic())
+                # Run inference on a smaller frame to reduce CPU time. The
+                # full preview remains at its original capture resolution.
+                inference = bgr
+                if bgr.shape[1] > 384:
+                    inference = cv2.resize(
+                        bgr,
+                        (384, max(1, round(bgr.shape[0] * 384 / bgr.shape[1]))),
+                        interpolation=cv2.INTER_AREA,
+                    )
+                rgb = cv2.cvtColor(inference, cv2.COLOR_BGR2RGB)
+                result = self._model.recognize(rgb, time.monotonic())
                 # Timestamp observations after inference; arrival freshness is measured here.
                 observation = classify_result(result, time.monotonic())
                 self._shared.publish(observation, self._generation)
