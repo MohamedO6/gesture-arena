@@ -1,3 +1,7 @@
+import pytest as _pytest
+_pytest.importorskip("av", reason="Legacy Python video tests are optional in the browser edition")
+_pytest.importorskip("mediapipe", reason="Legacy Python vision tests are optional in the browser edition")
+
 import io
 from types import SimpleNamespace as NS
 from urllib.error import URLError
