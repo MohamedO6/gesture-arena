@@ -56,17 +56,17 @@ except Exception:
     model_error = "Hand recognition couldn't start. Check the installation steps in README.md and retry."
 
 
-@st.fragment(run_every=0.5, key="status_fragment")
+@st.fragment(run_every=1.0, key="status_fragment")
 def live_status() -> None:
     ui.status(model is not None, arena.snapshot(time.monotonic()).camera_live)
 
 
-@st.fragment(run_every=0.25, key="scores_fragment")
+@st.fragment(run_every=0.75, key="scores_fragment")
 def live_scores() -> None:
     ui.scoreboard(arena.snapshot(time.monotonic()).game)
 
 
-@st.fragment(run_every=0.25, key="vision_fragment")
+@st.fragment(run_every=0.4, key="vision_fragment")
 def live_vision() -> None:
     now = time.monotonic()
     snapshot = arena.snapshot(now)
@@ -83,7 +83,7 @@ def live_vision() -> None:
                 st.caption("Connecting your camera… Allow camera access if your browser asks.")
 
 
-@st.fragment(run_every=0.12, key="battle_fragment")
+@st.fragment(run_every=0.2, key="battle_fragment")
 def live_battle() -> None:
     now = time.monotonic()
     snapshot = arena.snapshot(now)
@@ -120,7 +120,7 @@ def live_battle() -> None:
         st.html('<div class="rule-strip">✊ Rock beats scissors &nbsp;·&nbsp; ✋ Paper beats rock &nbsp;·&nbsp; ✌️ Scissors beats paper</div>')
 
 
-@st.fragment(run_every=0.5, key="history_fragment")
+@st.fragment(run_every=1.0, key="history_fragment")
 def live_history() -> None:
     with st.container(key="history_card"):
         ui.history_panel(arena.snapshot(time.monotonic()).game)
@@ -164,8 +164,8 @@ with camera_column:
                         key="gesture_camera",
                         mode=WebRtcMode.SENDRECV,
                         rtc_configuration={"iceServers": get_ice_servers()},
-                        media_stream_constraints={"video": {"width": {"ideal": 640}, "height": {"ideal": 480},
-                                                            "frameRate": {"ideal": 24, "max": 30}, "facingMode": "user"}, "audio": False},
+                        media_stream_constraints={"video": {"width": {"ideal": 384}, "height": {"ideal": 288},
+                                                            "frameRate": {"ideal": 15, "max": 20}, "facingMode": "user"}, "audio": False},
                         desired_playing_state=st.session_state.want_camera,
                         video_processor_factory=lambda: ArenaVideoProcessor(model, arena),
                         async_processing=True,
